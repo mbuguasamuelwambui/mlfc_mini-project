@@ -118,12 +118,7 @@ import geopandas as gpd
 from shapely import wkt
 import matplotlib.pyplot as plt
 import os, glob
-
-import pandas as pd
-import geopandas as gpd
-from shapely import wkt
-import matplotlib.pyplot as plt
-import os, glob
+import warnings
 
 def plot_features_with_clipping(kenya_counties, power_stations, csv_output_dir, tags):
 
