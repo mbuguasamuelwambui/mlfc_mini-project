@@ -152,7 +152,7 @@ def fetch_and_store_dataset(url, dest_folder="/content/drive/MyDrive/mlfc_minipr
     print(f"✅ Dataset stored in {dest_folder}")
 
 #Querying the OSM features
-
+!pip install geopandas osmnx matplotlib contextily shapely
 import osmx as ox
 import contextily as cx
 import geopandas as gpd
