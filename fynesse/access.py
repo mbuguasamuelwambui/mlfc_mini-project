@@ -127,6 +127,7 @@ def data() -> Union[pd.DataFrame, None]:
         print(f"Error loading data: {e}")
         return None
 
+#Downloading datasets
 import os, shutil
 
 from google.colab import drive
@@ -149,5 +150,91 @@ def fetch_and_store_dataset(url, dest_folder="/content/drive/MyDrive/mlfc_minipr
         shutil.move(src, dst)
 
     print(f"✅ Dataset stored in {dest_folder}")
+
+#Querying the OSM features
+
+import osmx as ox
+import contextily as cx
+import geopandas as gpd
+import os
+
+tags = {
+    "waterway": ["river", "stream", "canal", "dam"],
+    "natural": ["water", "lake", "reservoir", "coastline", "bay", "wetland"],
+    "landuse": ["forest", "farmland", "grass", "plantation", "basin"],
+    "power": ["tower", "substation","generator", "transformer"],
+    "highway": [ "primary", "secondary"],
+    "railway": ["rail"],
+    "boundary": ["protected_area", "national_park"]
+}
+
+north,west,south, east = kenya_counties.total_bounds
+bbox = (north,west,south, east)  # for OSMnx
+
+def plot_osm_features_by_county(kenya_counties, tags, save=False, output_dir="/content/drive/MyDrive/mlfc_miniproject/final_mlfc/county_maps", save_csv=False, csv_output_dir="/content/drive/MyDrive/mlfc_miniproject/final_mlfc/county_pois_csv"):
+    """
+    Loops through each county in Kenya, queries OSM features using tags,
+    and plots them individually. Optionally saves plots and queried data to CSV.
+
+    Parameters:
+    - kenya_counties: GeoDataFrame of Kenya counties
+    - tags: Dictionary of OSM tags to query
+    - save: If True, saves each plot as PNG
+    - output_dir: Directory to save plots
+    - save_csv: If True, saves queried features to CSV
+    - csv_output_dir: Directory to save CSV files
+    """
+
+    if save and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    if save_csv and not os.path.exists(csv_output_dir):
+        os.makedirs(csv_output_dir)
+
+
+    for _, county in kenya_counties.iterrows():
+        name = county["NAME_1"]
+
+        north,west,south, east = county.geometry.bounds
+        bbox = (north,west,south, east)
+        print("bbox",bbox)
+
+        try:
+            pois = ox.features_from_bbox(bbox, tags)
+        except Exception as e:
+            print(f"Skipping {name} due to error: {e}")
+            continue
+
+        if save_csv and not pois.empty:
+            # Ensure pois is a GeoDataFrame before saving to CSV
+            if isinstance(pois, gpd.GeoDataFrame):
+                pois.to_csv(f"{csv_output_dir}/{name.replace(' ', '_')}_pois.csv")
+            else:
+                print(f"Skipping CSV save for {name}: queried features are not a GeoDataFrame.")
+
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+        gpd.GeoSeries(county.geometry).plot(ax=ax, facecolor="none", edgecolor="black", linewidth=1)
+        if not pois.empty:
+            pois.plot(ax=ax, color="green", markersize=5, alpha=0.6)
+
+        ax.set_title(f"{name}: Environmental & Power Features", fontsize=14)
+        ax.set_xlim(west, east)
+        ax.set_ylim(south,north)
+
+        # add basemap
+        try:
+            cx.add_basemap(ax, crs=kenya_counties.crs.to_string(), source=cx.providers.OpenStreetMap.Mapnik)
+        except Exception:
+            pass
+
+
+        if save:
+            plt.savefig(f"{output_dir}/{name.replace(' ', '_')}.png", dpi=300)
+        else:
+            plt.show()
+
+        plt.close()
+
+
     
 
