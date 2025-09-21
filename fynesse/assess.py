@@ -111,3 +111,71 @@ def view(data: Union[pd.DataFrame, Any]) -> None:
 def labelled(data: Union[pd.DataFrame, Any]) -> Union[pd.DataFrame, Any]:
     """Provide a labelled set of data ready for supervised learning."""
     raise NotImplementedError
+
+#clipping features form OSM to Kenya counties and power stations
+import pandas as pd
+import geopandas as gpd
+from shapely import wkt
+import matplotlib.pyplot as plt
+import os, glob
+
+def plot_features_with_clipping(kenya_counties, power_stations, csv_output_dir, tags):
+   
+    fig, ax = plt.subplots(figsize=(12, 12))
+
+    # Plot Kenya counties
+    kenya_counties.plot(ax=ax, facecolor="none", edgecolor="black", linewidth=0.5)
+
+    # Plot power stations
+    power_stations.plot(ax=ax, color="red", markersize=40, label="Power Stations")
+
+    if os.path.exists(csv_output_dir):
+        all_pois = []
+        for csv_file in glob.glob(f"{csv_output_dir}/*_pois.csv"):
+            try:
+                pois_df = pd.read_csv(csv_file)
+                all_pois.append(pois_df)
+            except Exception as e:
+                print(f"Could not read {csv_file}: {e}")
+
+        if all_pois:
+            combined_pois_df = pd.concat(all_pois, ignore_index=True)
+            combined_pois_df['geometry'] = combined_pois_df['geometry'].apply(wkt.loads)
+            combined_pois = gpd.GeoDataFrame(combined_pois_df, geometry='geometry')
+
+            if combined_pois.crs is None:
+                combined_pois = combined_pois.set_crs(kenya_counties.crs, allow_override=True)
+
+            kenya_boundary = kenya_counties.dissolve().geometry.iloc[0]
+            combined_pois_clipped = combined_pois.clip(kenya_boundary)
+
+            # Filters
+            rivers      = combined_pois_clipped[combined_pois_clipped['waterway'] == 'river']
+            water_bodies= combined_pois_clipped[combined_pois_clipped['natural'].isin(['water',"lake", "reservoir", "coastline", "bay", "wetland"])]
+            forests     = combined_pois_clipped[(combined_pois_clipped['natural'] == 'forest')|(combined_pois_clipped['landuse'] == 'forest')]
+            plantations = combined_pois_clipped[combined_pois_clipped["landuse"] == "plantation"]
+            highway     = combined_pois_clipped[combined_pois_clipped["highway"].isin(tags["highway"])]
+            railways    = combined_pois_clipped[combined_pois_clipped["railway"].isin(tags["railway"])]
+            protected   = combined_pois_clipped[combined_pois_clipped["boundary"].isin(tags["boundary"])]
+            power_lines = combined_pois_clipped[combined_pois_clipped["power"].isin(["line","cable","tower"])]
+            substations = combined_pois_clipped[combined_pois_clipped["power"].isin(["substation","transformer"])]
+
+            # Plots
+            if not rivers.empty:      rivers.plot(ax=ax, color="blue", markersize=1, alpha=0.6, label="Rivers")
+            if not water_bodies.empty:water_bodies.plot(ax=ax, color="cyan", markersize=5, alpha=0.6, label="Water Bodies")
+            if not forests.empty:     forests.plot(ax=ax, color="darkgreen", markersize=5, alpha=0.6, label="Forests")
+            if not plantations.empty: plantations.plot(ax=ax, color="limegreen", alpha=0.4, label="Plantations")
+            if not highway.empty:     highway.plot(ax=ax, color="orange", linewidth=0.7, label="Roads")
+            if not railways.empty:    railways.plot(ax=ax, color="purple", linewidth=1, label="Railways")
+            if not protected.empty:   protected.plot(ax=ax, facecolor="none", edgecolor="magenta", linewidth=1, label="Protected Areas")
+            if not power_lines.empty: power_lines.plot(ax=ax, color="brown", linewidth=0.8, label="Power Lines")
+            if not substations.empty: substations.plot(ax=ax, color="yellow", markersize=30, label="Substations")
+
+        else:
+            print("No valid CSV files found in", csv_output_dir)
+    else:
+        print("CSV output directory not found:", csv_output_dir)
+
+    plt.title("Kenya Counties, Power Stations, and OSM Features by Type", fontsize=15)
+    plt.legend()
+    plt.show()
