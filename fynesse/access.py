@@ -126,3 +126,28 @@ def data() -> Union[pd.DataFrame, None]:
         logger.error(f"Unexpected error loading data: {e}")
         print(f"Error loading data: {e}")
         return None
+
+import os, shutil
+
+from google.colab import drive
+
+def fetch_and_store_dataset(url, dest_folder="/content/drive/MyDrive/mlfc_miniproject/final_mlfc"):
+    # Mount Google Drive once
+    drive.mount('/content/drive', force_remount=True)
+    
+    # Download & unzip
+    zip_name = url.split("/")[-1]
+    os.system(f"wget -q {url} -O {zip_name}")
+    os.system(f"unzip -q -o {zip_name} -d /content/tmp_dataset")
+
+    # Move to Drive
+    os.makedirs(dest_folder, exist_ok=True)
+    for item in os.listdir("/content/tmp_dataset"):
+        src = os.path.join("/content/tmp_dataset", item)
+        dst = os.path.join(dest_folder, item)
+        if os.path.exists(dst): shutil.rmtree(dst) if os.path.isdir(dst) else os.remove(dst)
+        shutil.move(src, dst)
+
+    print(f"✅ Dataset stored in {dest_folder}")
+    
+
