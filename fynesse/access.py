@@ -151,6 +151,8 @@ def fetch_and_store_dataset(url, dest_folder="/content/drive/MyDrive/mlfc_minipr
 
     print(f"✅ Dataset stored in {dest_folder}")
 
+
+#Querying the OSM features
 tags = {
     "waterway": ["river", "stream", "canal", "dam"],
     "natural": ["water", "lake", "reservoir", "coastline", "bay", "wetland"],
@@ -161,11 +163,6 @@ tags = {
     "boundary": ["protected_area", "national_park"]
 }
 
-north,west,south, east = kenya_counties.total_bounds
-bbox = (north,west,south, east)  # for OSMnx
-
-#Querying the OSM features
-#!pip install geopandas osmnx matplotlib contextily shapely
 import osmx as ox
 import contextily as cx
 import geopandas as gpd
