@@ -118,7 +118,6 @@ import geopandas as gpd
 from shapely import wkt
 import matplotlib.pyplot as plt
 import os, glob
-import warnings
 
 def plot_features_with_clipping(kenya_counties, power_stations, csv_output_dir, tags):
 
@@ -130,17 +129,12 @@ def plot_features_with_clipping(kenya_counties, power_stations, csv_output_dir, 
     # Plot power stations
     power_stations.plot(ax=ax, color="red", markersize=40, label="Power Stations")
 
-    combined_pois_clipped = gpd.GeoDataFrame() # Initialize empty GeoDataFrame
-
     if os.path.exists(csv_output_dir):
         all_pois = []
         for csv_file in glob.glob(f"{csv_output_dir}/*_pois.csv"):
             try:
-                # Suppress the specific DtypeWarning
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", message="Columns.*have mixed types", category=DtypeWarning)
-                    pois_df = pd.read_csv(csv_file)
-                    all_pois.append(pois_df)
+                pois_df = pd.read_csv(csv_file)
+                all_pois.append(pois_df)
             except Exception as e:
                 print(f"Could not read {csv_file}: {e}")
 
@@ -185,5 +179,3 @@ def plot_features_with_clipping(kenya_counties, power_stations, csv_output_dir, 
     plt.title("Kenya Counties, Power Stations, and OSM Features by Type", fontsize=15)
     plt.legend()
     plt.show()
-
-    return combined_pois_clipped # Return the clipped GeoDataFrame
