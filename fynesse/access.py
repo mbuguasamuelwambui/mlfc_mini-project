@@ -163,10 +163,6 @@ tags = {
     "boundary": ["protected_area", "national_park"]
 }
 
-import osmx as ox
-import contextily as cx
-import geopandas as gpd
-import os
 
 def plot_osm_features_by_county(kenya_counties, tags, save=False, output_dir="/content/drive/MyDrive/mlfc_miniproject/final_mlfc/county_maps", save_csv=False, csv_output_dir="/content/drive/MyDrive/mlfc_miniproject/final_mlfc/county_pois_csv"):
     """
