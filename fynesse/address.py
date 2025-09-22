@@ -13,6 +13,7 @@ import pandas as pd
 import logging
 import geopandas as gpd
 import numpy as np
+import matplotlib.pyplot as plt
 from shapely.geometry import Point
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
