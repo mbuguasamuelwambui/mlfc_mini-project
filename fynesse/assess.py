@@ -4,6 +4,14 @@ import logging
 
 from .config import *
 from . import access
+import pandas as pd
+import geopandas as gpd
+from shapely import wkt
+import matplotlib.pyplot as plt
+import os, glob
+import numpy as np
+from sklearn.cluster import DBSCAN
+from shapely.geometry import Point
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -112,17 +120,7 @@ def labelled(data: Union[pd.DataFrame, Any]) -> Union[pd.DataFrame, Any]:
     """Provide a labelled set of data ready for supervised learning."""
     raise NotImplementedError
 
-#clipping features form OSM to Kenya counties and power stations
-import pandas as pd
-import geopandas as gpd
-from shapely import wkt
-import matplotlib.pyplot as plt
-import os, glob
-import numpy as np
-from sklearn.cluster import DBSCAN
-from shapely.geometry import Point
-
-
+#clipping features form OSM to Kenya counties and power station
 def plot_features_with_clipping(kenya_counties, power_stations, csv_output_dir, tags):
 
     fig, ax = plt.subplots(figsize=(12, 12))
