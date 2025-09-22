@@ -30,6 +30,16 @@ The ultimate goal is to provide a reproducible, data-driven foundation for **sus
 
 - Build a scalable pipeline with outputs saved to CSV/GeoJSON for reuse
 
+## Requirements
+
+To run the notebook, you’ll need the following dependencies:
+
+```bash
+
+ pip install geopandas matplotlib contextily osmnx scikit-learn fiona shapely
+
+```
+
 ## 🧱 Fynesse Framework
 
 | Module               | Purpose                                            |
