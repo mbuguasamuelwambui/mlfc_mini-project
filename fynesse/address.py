@@ -177,6 +177,7 @@ def prepare_gp_data(grid_gdf):
     X = grid_gdf.drop(columns=['geometry', 'has_power_station']).values
     y = grid_gdf['has_power_station'].values
     return X, y
+    
 def prepare_gp_training_data(kenya_counties, power_stations_gdf, features, spacing_km=10, threshold_m=50000):
     """
     Prepares grid-based training data for a Gaussian Process model using Kenya's spatial and environmental features.
@@ -268,6 +269,7 @@ def train_gp_classifier(grid_with_features):
     else:
         print("Cannot train the model: Feature matrix or target variable is empty or shape mismatch.")
         return None
+        
 def predict_power_station_probability(gpc, X, grid_with_features):
     """
     Predicts the probability of power station presence across a spatial grid using a trained GPC model.
