@@ -293,6 +293,8 @@ def predict_power_station_probability(gpc, X, grid_with_features):
             print(f"Error during prediction: {e}")
             grid_with_features['power_station_probability'] = None
     else:
+        print("Model not trained or feature matrix not available. Cannot predict probabilities.")
+        grid_with_features['power_station_probability'] = None 
 
 def visualize_power_station_probability(grid_with_features, power_stations_proj=None):
     """
