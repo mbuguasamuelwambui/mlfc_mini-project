@@ -155,22 +155,16 @@ def plot_features_with_clipping(kenya_counties, power_stations, csv_output_dir, 
 
             # Filters
             rivers      = combined_pois_clipped[combined_pois_clipped['waterway'] == 'river']
-            water_bodies= combined_pois_clipped[combined_pois_clipped['natural'].isin(['water',"lake", "reservoir", "coastline", "bay", "wetland"])]
-            forests     = combined_pois_clipped[(combined_pois_clipped['natural'] == 'forest')|(combined_pois_clipped['landuse'] == 'forest')]
-            plantations = combined_pois_clipped[combined_pois_clipped["landuse"] == "plantation"]
-            highway     = combined_pois_clipped[combined_pois_clipped["highway"].isin(tags["highway"])]
-            railways    = combined_pois_clipped[combined_pois_clipped["railway"].isin(tags["railway"])]
+            water_bodies= combined_pois_clipped[combined_pois_clipped['natural'].isin(['water',"lake", "reservoir"])]
+            forests     = combined_pois_clipped[(combined_pois_clipped['landuse'] == 'forest')]
             protected   = combined_pois_clipped[combined_pois_clipped["boundary"].isin(tags["boundary"])]
-            power_lines = combined_pois_clipped[combined_pois_clipped["power"].isin(["line","cable","tower"])]
-            substations = combined_pois_clipped[combined_pois_clipped["power"].isin(["substation","transformer"])]
+            power_lines = combined_pois_clipped[combined_pois_clipped["power"].isin(["tower"])]
+            substations = combined_pois_clipped[combined_pois_clipped["power"].isin(["substation"])]
 
             # Plots
             if not rivers.empty:      rivers.plot(ax=ax, color="blue", markersize=1, alpha=0.6, label="Rivers")
             if not water_bodies.empty:water_bodies.plot(ax=ax, color="cyan", markersize=5, alpha=0.6, label="Water Bodies")
             if not forests.empty:     forests.plot(ax=ax, color="darkgreen", markersize=5, alpha=0.6, label="Forests")
-            if not plantations.empty: plantations.plot(ax=ax, color="limegreen", alpha=0.4, label="Plantations")
-            if not highway.empty:     highway.plot(ax=ax, color="orange", linewidth=0.7, label="Roads")
-            if not railways.empty:    railways.plot(ax=ax, color="purple", linewidth=1, label="Railways")
             if not protected.empty:   protected.plot(ax=ax, facecolor="none", edgecolor="magenta", linewidth=1, label="Protected Areas")
             if not power_lines.empty: power_lines.plot(ax=ax, color="brown", linewidth=0.8, label="Power Lines")
             if not substations.empty: substations.plot(ax=ax, color="yellow", markersize=30, label="Substations")
@@ -226,20 +220,14 @@ def plot_county_features(county_name, kenya_counties, combined_pois_clipped, pow
     rivers       = env_county[env_county["waterway"] == "river"]
     water_bodies = env_county[env_county["natural"] == "water"]
     forests      = env_county[(env_county["natural"] == "forest") | (env_county["landuse"] == "forest")]
-    plantations  = env_county[env_county["landuse"] == "plantation"]
-    roads        = env_county[env_county["highway"].isin(tags["highway"])]
-    railways     = env_county[env_county["railway"].isin(tags["railway"])]
     protected    = env_county[env_county["boundary"].isin(tags["boundary"])]
-    power_lines  = env_county[env_county["power"].isin(["line", "cable", "tower"])]
-    substations  = env_county[env_county["power"].isin(["substation", "transformer"])]
+    power_lines  = env_county[env_county["power"].isin(["tower"])]
+    substations  = env_county[env_county["power"].isin(["substation"])]
 
     # Plot features
     if not rivers.empty: rivers.plot(ax=ax, color="blue", linewidth=1, alpha=0.7, label="Rivers")
     if not water_bodies.empty: water_bodies.plot(ax=ax, color="cyan", markersize=5, alpha=0.7, label="Water Bodies")
     if not forests.empty: forests.plot(ax=ax, color="darkgreen", markersize=5, alpha=0.7, label="Forests")
-    if not plantations.empty: plantations.plot(ax=ax, color="limegreen", alpha=0.4, label="Plantations")
-    if not roads.empty: roads.plot(ax=ax, color="orange", linewidth=0.7, label="Roads")
-    if not railways.empty: railways.plot(ax=ax, color="purple", linewidth=1, label="Railways")
     if not protected.empty: protected.plot(ax=ax, facecolor="none", edgecolor="magenta", linewidth=1, label="Protected Areas")
     if not power_lines.empty: power_lines.plot(ax=ax, color="brown", linewidth=0.8, label="Power Lines")
     if not substations.empty: substations.plot(ax=ax, color="yellow", markersize=30, label="Substations")
