@@ -294,8 +294,6 @@ def predict_power_station_probability(gpc, X, grid_with_features):
             grid_with_features['power_station_probability'] = None
     else:
 
-import matplotlib.pyplot as plt
-
 def visualize_power_station_probability(grid_with_features, power_stations_proj=None):
     """
     Visualizes the predicted probability of power station presence across Kenya.
