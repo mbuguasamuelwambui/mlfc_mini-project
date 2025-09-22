@@ -11,6 +11,7 @@ This module tests data assessment functionality including:
 
 import pytest
 from fynesse import assess
+import osmnx as ox  # in fynesse/access.py
 
 
 class TestAssessModule:
