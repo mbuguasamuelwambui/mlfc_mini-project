@@ -10,6 +10,7 @@ This module tests question addressing functionality including:
 
 import pytest
 from fynesse import address
+import osmnx as ox  # in fynesse/access.py
 
 
 class TestAddressModule:
