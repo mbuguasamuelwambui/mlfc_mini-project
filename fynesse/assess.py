@@ -398,3 +398,34 @@ def run_dbscan_with_features(gdf, eps=10000, min_samples=3):
 
     return gdf_out
 
+def compute_power_station_density(power_stations_gdf, kenya_counties):
+    # Ensure both GeoDataFrames are in the same CRS for spatial join
+    power_stations_gdf = power_stations_gdf.to_crs(kenya_counties.crs)
+
+    # Perform a spatial join to find which county each power station is in
+    power_stations_with_counties = gpd.sjoin(power_stations_gdf, kenya_counties, how="inner", predicate="within")
+
+    # Group by county name and count the number of power stations
+    power_stations_per_county = power_stations_with_counties.groupby('NAME_1').size().reset_index(name='power_station_count')
+
+    # Ensure kenya_counties is in a projected CRS for accurate area calculation
+    kenya_counties_proj = kenya_counties.to_crs(epsg=32637)  # Using UTM Zone 37N
+
+    # Project power stations to the same CRS for area calculation
+    power_stations_proj = power_stations_gdf.to_crs(epsg=32637)
+
+    # Calculate the area of each county in square kilometers
+    kenya_counties_proj['area_sqkm'] = kenya_counties_proj.geometry.area / 10**6  # Convert from square meters to square kilometers
+
+    # Merge the power station counts with the county areas
+    power_stations_density = power_stations_per_county.merge(
+        kenya_counties_proj[['NAME_1', 'area_sqkm']],
+        on='NAME_1',
+        how='left'
+    )
+
+    # Calculate density per square kilometer
+    power_stations_density['density_per_sqkm'] = power_stations_density['power_station_count'] / power_stations_density['area_sqkm']
+
+    # Display the results, sorted by density
+    display(power_stations_density.sort_values(by='density_per_sqkm', ascending=False))
