@@ -9,7 +9,7 @@ This module tests data access functionality including:
 
 import pytest
 from fynesse import access
-import osmnx as ox  # in fynesse/access.py
+
 
 
 class TestAccessModule:

@@ -57,6 +57,9 @@ import osmnx as ox
 import geopandas as gpd
 import contextily as cx
 import matplotlib.pyplot as plt
+import os, shutil
+
+from google.colab import drive
 
 # Set up basic logging
 logging.basicConfig(
@@ -132,10 +135,6 @@ def data() -> Union[pd.DataFrame, None]:
         return None
 
 #Downloading datasets
-import os, shutil
-
-from google.colab import drive
-
 def fetch_and_store_dataset(url, dest_folder="/content/drive/MyDrive/mlfc_miniproject/final_mlfc"):
     # Mount Google Drive once
     drive.mount('/content/drive', force_remount=True)
