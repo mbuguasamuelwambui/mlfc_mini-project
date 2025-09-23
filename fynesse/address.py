@@ -111,6 +111,7 @@ def analyze_data(data: Union[pd.DataFrame, Any]) -> dict[str, Any]:
         print(f"Error analyzing data: {e}")
         return {"error": str(e)}
 
+
 def generate_grid(boundary_gdf, spacing_km=10):
     """
     Generates a grid of points over Kenya with specified spacing in kilometers.
@@ -137,7 +138,7 @@ def label_grid_points(grid_gdf, power_stations_gdf, threshold_m=50000):
     stations_proj = power_stations_gdf.to_crs(epsg=32637)
 
     # Check proximity
-    grid_proj['has_power_station'] = grid_proj.geometry.apply(
+    grid_proj["has_power_station"] = grid_proj.geometry.apply(
         lambda pt: stations_proj.distance(pt).min() <= threshold_m
     ).astype(int)
     return grid_proj
@@ -148,38 +149,57 @@ def label_grid_points(grid_gdf, power_stations_gdf, threshold_m=50000):
 
     return grid_gdf.to_crs(epsg=4326)
 
-def add_environmental_features(grid_gdf, rivers_gdf, water_bodies_gdf, forests_gdf, power_stations_gdf, protected_areas_gdf):
+
+def add_environmental_features(
+    grid_gdf,
+    rivers_gdf,
+    water_bodies_gdf,
+    forests_gdf,
+    power_stations_gdf,
+    protected_areas_gdf,
+):
     grid_proj = grid_gdf.to_crs(epsg=32637)
     rivers_proj = rivers_gdf.to_crs(epsg=32637)
     water_proj = water_bodies_gdf.to_crs(epsg=32637)
     forest_proj = forests_gdf.to_crs(epsg=32637)
-    stations_proj = power_stations_gdf.to_crs(epsg=32637) # Reproject power stations
-    protected_proj = protected_areas_gdf.to_crs(epsg=32637) # Reproject protected areas
+    stations_proj = power_stations_gdf.to_crs(epsg=32637)  # Reproject power stations
+    protected_proj = protected_areas_gdf.to_crs(epsg=32637)  # Reproject protected areas
 
-
-    grid_proj['distance_to_river'] = grid_proj.geometry.apply(
-        lambda geom: rivers_proj.distance(geom).min() if not rivers_proj.empty else np.nan
+    grid_proj["distance_to_river"] = grid_proj.geometry.apply(
+        lambda geom: (
+            rivers_proj.distance(geom).min() if not rivers_proj.empty else np.nan
+        )
     )
-    grid_proj['distance_to_water'] = grid_proj.geometry.apply(
+    grid_proj["distance_to_water"] = grid_proj.geometry.apply(
         lambda geom: water_proj.distance(geom).min() if not water_proj.empty else np.nan
     )
-    grid_proj['distance_to_forest'] = grid_proj.geometry.apply(
-        lambda geom: forest_proj.distance(geom).min() if not forest_proj.empty else np.nan
+    grid_proj["distance_to_forest"] = grid_proj.geometry.apply(
+        lambda geom: (
+            forest_proj.distance(geom).min() if not forest_proj.empty else np.nan
+        )
     )
-    grid_proj['distance_to_substation'] = grid_proj.geometry.apply(
-        lambda geom: stations_proj.distance(geom).min() if not stations_proj.empty else np.nan
+    grid_proj["distance_to_substation"] = grid_proj.geometry.apply(
+        lambda geom: (
+            stations_proj.distance(geom).min() if not stations_proj.empty else np.nan
+        )
     )
-    grid_proj['distance_to_protected'] = grid_proj.geometry.apply(
-        lambda geom: protected_proj.distance(geom).min() if not protected_proj.empty else np.nan
+    grid_proj["distance_to_protected"] = grid_proj.geometry.apply(
+        lambda geom: (
+            protected_proj.distance(geom).min() if not protected_proj.empty else np.nan
+        )
     )
     return grid_proj
 
+
 def prepare_gp_data(grid_gdf):
-    X = grid_gdf.drop(columns=['geometry', 'has_power_station']).values
-    y = grid_gdf['has_power_station'].values
+    X = grid_gdf.drop(columns=["geometry", "has_power_station"]).values
+    y = grid_gdf["has_power_station"].values
     return X, y
-    
-def prepare_gp_training_data(kenya_counties, power_stations_gdf, features, spacing_km=10, threshold_m=50000):
+
+
+def prepare_gp_training_data(
+    kenya_counties, power_stations_gdf, features, spacing_km=10, threshold_m=50000
+):
     """
     Prepares grid-based training data for a Gaussian Process model using Kenya's spatial and environmental features.
 
@@ -202,13 +222,23 @@ def prepare_gp_training_data(kenya_counties, power_stations_gdf, features, spaci
     try:
         kenya_boundary = kenya_counties.dissolve()
         grid = generate_grid(kenya_boundary, spacing_km=spacing_km)
-        grid_labeled = label_grid_points(grid, power_stations_gdf, threshold_m=threshold_m)
+        grid_labeled = label_grid_points(
+            grid, power_stations_gdf, threshold_m=threshold_m
+        )
 
         # Safely extract environmental layers from features dictionary
-        rivers_gdf = features.get("river", gpd.GeoDataFrame(geometry=[], crs=kenya_counties.crs))
-        water_bodies_gdf = features.get("water_body", gpd.GeoDataFrame(geometry=[], crs=kenya_counties.crs))
-        forests_gdf = features.get("forest", gpd.GeoDataFrame(geometry=[], crs=kenya_counties.crs))
-        protected_areas_gdf = features.get("protected", gpd.GeoDataFrame(geometry=[], crs=kenya_counties.crs))
+        rivers_gdf = features.get(
+            "river", gpd.GeoDataFrame(geometry=[], crs=kenya_counties.crs)
+        )
+        water_bodies_gdf = features.get(
+            "water_body", gpd.GeoDataFrame(geometry=[], crs=kenya_counties.crs)
+        )
+        forests_gdf = features.get(
+            "forest", gpd.GeoDataFrame(geometry=[], crs=kenya_counties.crs)
+        )
+        protected_areas_gdf = features.get(
+            "protected", gpd.GeoDataFrame(geometry=[], crs=kenya_counties.crs)
+        )
 
         grid_with_features = add_environmental_features(
             grid_labeled,
@@ -216,7 +246,7 @@ def prepare_gp_training_data(kenya_counties, power_stations_gdf, features, spaci
             water_bodies_gdf,
             forests_gdf,
             power_stations_gdf,
-            protected_areas_gdf
+            protected_areas_gdf,
         )
 
         X, y = prepare_gp_data(grid_with_features)
@@ -225,6 +255,7 @@ def prepare_gp_training_data(kenya_counties, power_stations_gdf, features, spaci
     except Exception as e:
         print(f"Error during data preparation: {e}")
         return None, None, None
+
 
 def train_gp_classifier(grid_with_features):
     """
@@ -238,8 +269,8 @@ def train_gp_classifier(grid_with_features):
     """
     # Extract features and target
     try:
-        X = grid_with_features.drop(columns=['geometry', 'has_power_station']).values
-        y = grid_with_features['has_power_station'].values
+        X = grid_with_features.drop(columns=["geometry", "has_power_station"]).values
+        y = grid_with_features["has_power_station"].values
     except Exception as e:
         print(f"Error extracting features and labels: {e}")
         return None
@@ -268,9 +299,12 @@ def train_gp_classifier(grid_with_features):
             print(f"Error during model training: {e}")
             return None
     else:
-        print("Cannot train the model: Feature matrix or target variable is empty or shape mismatch.")
+        print(
+            "Cannot train the model: Feature matrix or target variable is empty or shape mismatch."
+        )
         return None
-        
+
+
 def predict_power_station_probability(gpc, X, grid_with_features):
     """
     Predicts the probability of power station presence across a spatial grid using a trained GPC model.
@@ -287,15 +321,22 @@ def predict_power_station_probability(gpc, X, grid_with_features):
         print("Predicting probabilities...")
         try:
             y_prob = gpc.predict_proba(X)[:, 1]
-            grid_with_features['power_station_probability'] = y_prob
+            grid_with_features["power_station_probability"] = y_prob
             print("Prediction complete.")
-            display(grid_with_features[['has_power_station', 'power_station_probability']].head())
+            display(
+                grid_with_features[
+                    ["has_power_station", "power_station_probability"]
+                ].head()
+            )
         except Exception as e:
             print(f"Error during prediction: {e}")
-            grid_with_features['power_station_probability'] = None
+            grid_with_features["power_station_probability"] = None
     else:
-        print("Model not trained or feature matrix not available. Cannot predict probabilities.")
-        grid_with_features['power_station_probability'] = None 
+        print(
+            "Model not trained or feature matrix not available. Cannot predict probabilities."
+        )
+        grid_with_features["power_station_probability"] = None
+
 
 def visualize_power_station_probability(grid_with_features, power_stations_proj=None):
     """
@@ -305,39 +346,43 @@ def visualize_power_station_probability(grid_with_features, power_stations_proj=
     - grid_with_features: GeoDataFrame with 'power_station_probability' column
     - power_stations_proj: (Optional) GeoDataFrame of actual power station locations in projected CRS
     """
-    if 'power_station_probability' in grid_with_features.columns and not grid_with_features.empty:
+    if (
+        "power_station_probability" in grid_with_features.columns
+        and not grid_with_features.empty
+    ):
         fig, ax = plt.subplots(1, 1, figsize=(15, 15))
 
         # Plot the probability heatmap
         grid_with_features.plot(
-            column='power_station_probability',
+            column="power_station_probability",
             ax=ax,
             legend=True,
-            cmap='OrRd',
+            cmap="OrRd",
             legend_kwds={
-                'label': "Probability of Power Station Presence",
-                'orientation': "horizontal"
-            }
+                "label": "Probability of Power Station Presence",
+                "orientation": "horizontal",
+            },
         )
 
         # Overlay actual power station locations if provided
         if power_stations_proj is not None and not power_stations_proj.empty:
             power_stations_proj.plot(
-                ax=ax,
-                color='blue',
-                markersize=10,
-                label='Actual Power Stations'
+                ax=ax, color="blue", markersize=10, label="Actual Power Stations"
             )
 
-        plt.title('Predicted Probability of Power Station Presence in Kenya')
-        plt.xlabel('Easting (meters)')
-        plt.ylabel('Northing (meters)')
+        plt.title("Predicted Probability of Power Station Presence in Kenya")
+        plt.xlabel("Easting (meters)")
+        plt.ylabel("Northing (meters)")
         plt.legend()
         plt.show()
     else:
-        print("Predicted probability column not found or grid data is empty. Cannot visualize.")
+        print(
+            "Predicted probability column not found or grid data is empty. Cannot visualize."
+        )
 
-        print("Model not trained or feature matrix not available. Cannot predict probabilities.")
-        grid_with_features['power_station_probability'] = None
+        print(
+            "Model not trained or feature matrix not available. Cannot predict probabilities."
+        )
+        grid_with_features["power_station_probability"] = None
 
     return grid_with_features
