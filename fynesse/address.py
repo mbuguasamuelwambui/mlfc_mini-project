@@ -129,7 +129,7 @@ def generate_grid(boundary_gdf, spacing_km=10):
     grid_gdf = gpd.GeoDataFrame(geometry=grid_points, crs=boundary_proj.crs)
 
 
-def label_grid_points(grid_gdf, power_stations_gdf, threshold_m=50000):
+def label_grid_points(grid_gdf, power_stations_gdf, boundary_proj, threshold_m=50000): # Added boundary_proj as input
     """
     Adds a binary column 'has_power_station' to grid_gdf based on proximity to power stations.
     """
@@ -141,13 +141,13 @@ def label_grid_points(grid_gdf, power_stations_gdf, threshold_m=50000):
     grid_proj["has_power_station"] = grid_proj.geometry.apply(
         lambda pt: stations_proj.distance(pt).min() <= threshold_m
     ).astype(int)
-    return grid_proj
 
     # Clip to Kenya boundary
-    kenya_shape = boundary_proj.geometry.union_all()
-    grid_gdf = grid_gdf[grid_gdf.geometry.within(kenya_shape)]
+    # Assuming boundary_proj is the reprojected Kenya boundary GeoDataFrame
+    kenya_shape = boundary_proj.geometry.unary_union # Use unary_union for a single polygon
+    grid_proj_clipped = grid_proj[grid_proj.geometry.within(kenya_shape)].copy() # Clip and create a copy to avoid SettingWithCopyWarning
 
-    return grid_gdf.to_crs(epsg=4326)
+    return grid_proj_clipped.to_crs(epsg=4326) # Return the clipped grid in WGS84
 
 
 def add_environmental_features(
